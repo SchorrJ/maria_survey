@@ -294,7 +294,7 @@ elif st.session_state.page == 3:
 
     if show_phq_followup:
         st.session_state.q17 = st.radio(
-            "**PHQ-9 — Have you talked to a medical professional or doctor about your symptoms?**",
+            "**PHQ-9 Depression — Have you talked to a medical professional or doctor about your symptoms?**",
             DOCTOR_OPTIONS,
             index=DOCTOR_OPTIONS.index(st.session_state.q17) if st.session_state.q17 in DOCTOR_OPTIONS else None,
             key="r_q17",
@@ -303,7 +303,7 @@ elif st.session_state.page == 3:
 
     if show_gad_followup:
         st.session_state.q18 = st.radio(
-            "**GAD-7 — Have you talked to a medical professional or doctor about your symptoms?**",
+            "**GAD-7 Anxiety — Have you talked to a medical professional or doctor about your symptoms?**",
             DOCTOR_OPTIONS,
             index=DOCTOR_OPTIONS.index(st.session_state.q18) if st.session_state.q18 in DOCTOR_OPTIONS else None,
             key="r_q18",
