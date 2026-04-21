@@ -142,7 +142,7 @@ elif st.session_state.page == 1:
         st.session_state.page = 2
         st.rerun()
     if not ready:
-        st.caption("⚠️ Please answer all questions to continue.")
+        st.caption(" Please answer all questions to continue.")
 
 # ── PAGE 2 : PHQ-9 ──────────────────────────────────────────────────
 elif st.session_state.page == 2:
@@ -165,7 +165,7 @@ elif st.session_state.page == 2:
             st.session_state.page = 3
             st.rerun()
     if not ready:
-        st.caption("⚠️ Please answer all questions to continue.")
+        st.caption(" Please answer all questions to continue.")
 
 # ── PAGE 3 : follow-up (conditional) ───────────────────────────────
 elif st.session_state.page == 3:
@@ -240,7 +240,7 @@ elif st.session_state.page == 3:
             st.session_state.page = 4
             st.rerun()
     if not ready:
-        st.caption("⚠️ Please answer all questions to continue.")
+        st.caption(" Please answer all questions to continue.")
 
 # ── PAGE 4 : results ────────────────────────────────────────────────
 elif st.session_state.page == 4:
@@ -260,7 +260,7 @@ elif st.session_state.page == 4:
         )
         st.session_state.saved = True
 
-    st.title("Thank you for participating! 🎉")
+    st.title("Thank you for participating! ")
     st.divider()
     st.subheader("Your Results")
 
@@ -294,7 +294,7 @@ elif st.session_state.page == 4:
 
     st.divider()
     st.info(
-        "⚠️ This survey is a self-assessment tool for research purposes only. "
+        " This survey is a self-assessment tool for research purposes only. "
         "It is not a clinical diagnosis. If you are concerned about your mental health, "
         "please speak with a qualified medical professional."
     )
