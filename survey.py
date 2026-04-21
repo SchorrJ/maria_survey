@@ -1,6 +1,49 @@
 import streamlit as st
+import gspread
+from google.oauth2.service_account import Credentials
+import json
+from datetime import datetime
 
 st.set_page_config(page_title="Mental Health Research Survey", page_icon="🧠", layout="centered")
+
+# ── Google Sheets connection ─────────────────────────────────────────
+def get_sheet():
+    scopes = [
+        "https://www.googleapis.com/auth/spreadsheets",
+        "https://www.googleapis.com/auth/drive",
+    ]
+    key_data = json.loads(st.secrets["gcp_service_account"])
+    creds = Credentials.from_service_account_info(key_data, scopes=scopes)
+    client = gspread.authorize(creds)
+    return client.open("Survey Responses").sheet1
+
+def save_to_sheet(gad_answers, phq_answers, gad_score, phq_score, q17, q18, q19, q20):
+    try:
+        sheet = get_sheet()
+        # Add headers if sheet is empty
+        if not sheet.get_all_values():
+            headers = [
+                "Timestamp",
+                "GAD1", "GAD2", "GAD3", "GAD4", "GAD5", "GAD6", "GAD7",
+                "PHQ1", "PHQ2", "PHQ3", "PHQ4", "PHQ5", "PHQ6", "PHQ7", "PHQ8", "PHQ9",
+                "GAD Score", "PHQ Score",
+                "PHQ - Seen Doctor?", "GAD - Seen Doctor?",
+                "Reason No Doctor", "Time to See Doctor"
+            ]
+            sheet.append_row(headers)
+
+        row = [
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            *[gad_answers.get(i, "") for i in range(7)],
+            *[phq_answers.get(i, "") for i in range(9)],
+            gad_score, phq_score,
+            q17 or "", q18 or "", q19 or "", q20 or ""
+        ]
+        sheet.append_row(row)
+        return True
+    except Exception as e:
+        st.error(f"Could not save to Google Sheets: {e}")
+        return False
 
 # ── session state init ──────────────────────────────────────────────
 for key, val in {
@@ -8,6 +51,7 @@ for key, val in {
     "gad_answers": {},
     "phq_answers": {},
     "q17": None, "q18": None, "q19": "", "q20": None,
+    "saved": False,
 }.items():
     if key not in st.session_state:
         st.session_state[key] = val
@@ -57,11 +101,10 @@ def score(answers):
 def all_answered(answers, n):
     return len(answers) == n and all(v is not None for v in answers.values())
 
-def radio(label, key, store, index=None):
-    """Render a radio and save to the given store dict."""
+def radio(label, key, store, section=""):
     prev = store.get(key)
     idx = OPTIONS.index(prev) if prev in OPTIONS else None
-    choice = st.radio(label, OPTIONS, index=idx, key=f"radio_{key}")
+    choice = st.radio(label, OPTIONS, index=idx, key=f"radio_{section}_{key}")
     store[key] = choice
 
 # ── PAGE 0 : intro ──────────────────────────────────────────────────
@@ -88,7 +131,7 @@ elif st.session_state.page == 1:
     st.divider()
 
     for i, q in enumerate(GAD_QUESTIONS):
-        radio(f"**{i+1}. {q}**", i, st.session_state.gad_answers)
+        radio(f"**{i+1}. {q}**", i, st.session_state.gad_answers, section="gad")
         st.write("")
 
     ready = all_answered(st.session_state.gad_answers, len(GAD_QUESTIONS))
@@ -105,7 +148,7 @@ elif st.session_state.page == 2:
     st.divider()
 
     for i, q in enumerate(PHQ_QUESTIONS):
-        radio(f"**{i+1}. {q}**", i, st.session_state.phq_answers)
+        radio(f"**{i+1}. {q}**", i, st.session_state.phq_answers, section="phq")
         st.write("")
 
     ready = all_answered(st.session_state.phq_answers, len(PHQ_QUESTIONS))
@@ -126,16 +169,15 @@ elif st.session_state.page == 3:
     gad = score(st.session_state.gad_answers)
     phq = score(st.session_state.phq_answers)
 
-    st.title("Follow-up Questions")
-    st.divider()
-
     show_phq_followup = phq >= 5
     show_gad_followup = gad >= 5
 
     if not show_phq_followup and not show_gad_followup:
-        # Neither score >= 5 — skip straight to results
         st.session_state.page = 4
         st.rerun()
+
+    st.title("Follow-up Questions")
+    st.divider()
 
     if show_phq_followup:
         st.session_state.q17 = st.radio(
@@ -155,7 +197,6 @@ elif st.session_state.page == 3:
         )
         st.write("")
 
-    # Show Q19 if either answer is "No — never"
     answered_no = (
         (show_phq_followup and st.session_state.q17 == "No — never") or
         (show_gad_followup and st.session_state.q18 == "No — never")
@@ -182,7 +223,6 @@ elif st.session_state.page == 3:
         )
         st.write("")
 
-    # check required follow-ups answered
     phq_ok = (not show_phq_followup) or (st.session_state.q17 is not None)
     gad_ok = (not show_gad_followup) or (st.session_state.q18 is not None)
     ready = phq_ok and gad_ok
@@ -204,11 +244,23 @@ elif st.session_state.page == 4:
     gad = score(st.session_state.gad_answers)
     phq = score(st.session_state.phq_answers)
 
+    # Save to sheet once
+    if not st.session_state.saved:
+        save_to_sheet(
+            st.session_state.gad_answers,
+            st.session_state.phq_answers,
+            gad, phq,
+            st.session_state.q17,
+            st.session_state.q18,
+            st.session_state.q19,
+            st.session_state.q20,
+        )
+        st.session_state.saved = True
+
     st.title("Thank you for participating! 🎉")
     st.divider()
     st.subheader("Your Results")
 
-    # GAD-7 interpretation
     if gad <= 4:
         gad_label, gad_color = "Minimal Anxiety", "green"
     elif gad <= 9:
@@ -218,7 +270,6 @@ elif st.session_state.page == 4:
     else:
         gad_label, gad_color = "Severe Anxiety", "red"
 
-    # PHQ-9 interpretation
     if phq <= 4:
         phq_label, phq_color = "Minimal Depression", "green"
     elif phq <= 9:
@@ -246,6 +297,6 @@ elif st.session_state.page == 4:
     )
 
     if st.button("↩ Start Over", use_container_width=True):
-        for key in ["page","gad_answers","phq_answers","q17","q18","q19","q20"]:
+        for key in ["page","gad_answers","phq_answers","q17","q18","q19","q20","saved"]:
             del st.session_state[key]
         st.rerun()
