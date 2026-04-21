@@ -4,7 +4,7 @@ from google.oauth2.service_account import Credentials
 import json
 from datetime import datetime
 
-st.set_page_config(page_title="Mental Health Research Survey", page_icon=":)", layout="centered")
+st.set_page_config(page_title="Mental Health Research Survey", page_icon="🧠", layout="centered")
 
 # ── Google Sheets connection ─────────────────────────────────────────
 def get_sheet():
@@ -42,6 +42,9 @@ def save_to_sheet(gad_answers, phq_answers, gad_score, phq_score, q17, q18, q19,
         sheet.append_row(row, value_input_option="RAW")
         return True
     except Exception as e:
+        # gspread sometimes throws Response [200] which means it actually succeeded
+        if "200" in str(e):
+            return True
         st.error(f"Could not save to Google Sheets: {e}")
         return False
 
@@ -139,7 +142,7 @@ elif st.session_state.page == 1:
         st.session_state.page = 2
         st.rerun()
     if not ready:
-        st.caption(" Please answer all questions to continue.")
+        st.caption("⚠️ Please answer all questions to continue.")
 
 # ── PAGE 2 : PHQ-9 ──────────────────────────────────────────────────
 elif st.session_state.page == 2:
@@ -162,7 +165,7 @@ elif st.session_state.page == 2:
             st.session_state.page = 3
             st.rerun()
     if not ready:
-        st.caption(" Please answer all questions to continue.")
+        st.caption("⚠️ Please answer all questions to continue.")
 
 # ── PAGE 3 : follow-up (conditional) ───────────────────────────────
 elif st.session_state.page == 3:
@@ -237,7 +240,7 @@ elif st.session_state.page == 3:
             st.session_state.page = 4
             st.rerun()
     if not ready:
-        st.caption(" Please answer all questions to continue.")
+        st.caption("⚠️ Please answer all questions to continue.")
 
 # ── PAGE 4 : results ────────────────────────────────────────────────
 elif st.session_state.page == 4:
@@ -257,7 +260,7 @@ elif st.session_state.page == 4:
         )
         st.session_state.saved = True
 
-    st.title("Thank you for participating! ")
+    st.title("Thank you for participating! 🎉")
     st.divider()
     st.subheader("Your Results")
 
@@ -291,7 +294,7 @@ elif st.session_state.page == 4:
 
     st.divider()
     st.info(
-        " This survey is a self-assessment tool for research purposes only. "
+        "⚠️ This survey is a self-assessment tool for research purposes only. "
         "It is not a clinical diagnosis. If you are concerned about your mental health, "
         "please speak with a qualified medical professional."
     )
