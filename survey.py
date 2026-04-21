@@ -124,8 +124,10 @@ def get_sheet():
 def save_to_sheet(gad_answers, phq_answers, gad_score, phq_score, q17, q18, q19, q20):
     try:
         sheet = get_sheet()
-        # Add headers if sheet is empty
-        if not sheet.get_all_values():
+
+        # Check if headers exist in row 1
+        first_row = sheet.row_values(1)
+        if not first_row or first_row[0] != "Timestamp":
             headers = [
                 "Timestamp",
                 "GAD1", "GAD2", "GAD3", "GAD4", "GAD5", "GAD6", "GAD7",
@@ -134,7 +136,7 @@ def save_to_sheet(gad_answers, phq_answers, gad_score, phq_score, q17, q18, q19,
                 "PHQ - Seen Doctor?", "GAD - Seen Doctor?",
                 "Reason No Doctor", "Time to See Doctor"
             ]
-            sheet.append_row(headers)
+            sheet.insert_row(headers, 1)
 
         row = [str(x) for x in [
             datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -143,7 +145,11 @@ def save_to_sheet(gad_answers, phq_answers, gad_score, phq_score, q17, q18, q19,
             gad_score, phq_score,
             q17 or "", q18 or "", q19 or "", q20 or ""
         ]]
-        sheet.append_row(row, value_input_option="RAW")
+
+        # Find the first truly empty row to avoid whitespace gaps
+        all_rows = sheet.get_all_values()
+        next_row = len([r for r in all_rows if any(cell.strip() for cell in r)]) + 1
+        sheet.insert_row(row, next_row + 1)
         return True
     except Exception as e:
         # gspread sometimes throws Response [200] which means it actually succeeded
@@ -227,7 +233,7 @@ if st.session_state.page == 0:
         of mental health disorders **this survey is anonymous.**
         """
     )
-    if st.button("Begin Survey →", use_container_width=True):
+    if st.button("Begin Survey", use_container_width=True):
         st.session_state.page = 1
         st.rerun()
 
@@ -242,11 +248,11 @@ elif st.session_state.page == 1:
         st.write("")
 
     ready = all_answered(st.session_state.gad_answers, len(GAD_QUESTIONS))
-    if st.button("Next →", disabled=not ready, use_container_width=True):
+    if st.button("Next", disabled=not ready, use_container_width=True):
         st.session_state.page = 2
         st.rerun()
     if not ready:
-        st.caption(" Please answer all questions to continue.")
+        st.caption("Please answer all questions to continue.")
 
 # ── PAGE 2 : PHQ-9 ──────────────────────────────────────────────────
 elif st.session_state.page == 2:
@@ -261,15 +267,15 @@ elif st.session_state.page == 2:
     ready = all_answered(st.session_state.phq_answers, len(PHQ_QUESTIONS))
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("← Back", use_container_width=True):
+        if st.button("Back", use_container_width=True):
             st.session_state.page = 1
             st.rerun()
     with col2:
-        if st.button("Next →", disabled=not ready, use_container_width=True):
+        if st.button("Next", disabled=not ready, use_container_width=True):
             st.session_state.page = 3
             st.rerun()
     if not ready:
-        st.caption(" Please answer all questions to continue.")
+        st.caption("Please answer all questions to continue.")
 
 # ── PAGE 3 : follow-up (conditional) ───────────────────────────────
 elif st.session_state.page == 3:
@@ -336,15 +342,15 @@ elif st.session_state.page == 3:
 
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("← Back", use_container_width=True):
+        if st.button("Back", use_container_width=True):
             st.session_state.page = 2
             st.rerun()
     with col2:
-        if st.button("See Results →", disabled=not ready, use_container_width=True):
+        if st.button("See Results", disabled=not ready, use_container_width=True):
             st.session_state.page = 4
             st.rerun()
     if not ready:
-        st.caption(" Please answer all questions to continue.")
+        st.caption("Please answer all questions to continue.")
 
 # ── PAGE 4 : results ────────────────────────────────────────────────
 elif st.session_state.page == 4:
@@ -403,7 +409,7 @@ elif st.session_state.page == 4:
         "please speak with a qualified medical professional."
     )
 
-    if st.button("↩ Start Over", use_container_width=True):
+    if st.button("Start Over", use_container_width=True):
         for key in ["page","gad_answers","phq_answers","q17","q18","q19","q20","saved"]:
             del st.session_state[key]
         st.rerun()
