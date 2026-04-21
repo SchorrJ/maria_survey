@@ -146,10 +146,10 @@ def save_to_sheet(gad_answers, phq_answers, gad_score, phq_score, q17, q18, q19,
             q17 or "", q18 or "", q19 or "", q20 or ""
         ]]
 
-        # Find the first truly empty row to avoid whitespace gaps
-        all_rows = sheet.get_all_values()
-        next_row = len([r for r in all_rows if any(cell.strip() for cell in r)]) + 1
-        sheet.insert_row(row, next_row + 1)
+        # Append directly after last row that has a timestamp
+        col_a = sheet.col_values(1)  # timestamps are in column A
+        next_row = len(col_a) + 1
+        sheet.insert_row(row, next_row)
         return True
     except Exception as e:
         # gspread sometimes throws Response [200] which means it actually succeeded
