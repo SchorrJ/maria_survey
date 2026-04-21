@@ -4,7 +4,111 @@ from google.oauth2.service_account import Credentials
 import json
 from datetime import datetime
 
-st.set_page_config(page_title="Mental Health Research Survey", page_icon="🧠", layout="centered")
+st.set_page_config(page_title="Mental Health Research Survey", layout="centered")
+
+# ── Fairy theme CSS ──────────────────────────────────────────────────
+st.markdown("""
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Quicksand:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+.stApp {
+    background: linear-gradient(135deg, #fce4f3 0%, #ede0ff 35%, #ddf0f8 70%, #fef6e4 100%) !important;
+    min-height: 100vh;
+}
+#MainMenu, footer, header { visibility: hidden; }
+.block-container { padding-top: 2rem !important; max-width: 680px !important; }
+h1, h2, h3 {
+    font-family: 'Cormorant Garamond', serif !important;
+    font-weight: 300 !important;
+    color: #5c3d6e !important;
+    letter-spacing: 0.03em !important;
+}
+h1 { font-size: 2.2rem !important; }
+p, div, label, span, .stMarkdown {
+    font-family: 'Quicksand', sans-serif !important;
+    color: #5c3d6e !important;
+}
+.stCaptionContainer p, small {
+    font-family: 'Quicksand', sans-serif !important;
+    color: #8a6fa8 !important;
+    letter-spacing: 0.04em;
+}
+hr { border-color: rgba(138,111,168,0.25) !important; }
+.stRadio > div {
+    background: rgba(255,255,255,0.45) !important;
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.7) !important;
+    border-radius: 20px !important;
+    padding: 16px 20px !important;
+    box-shadow: 0 4px 20px rgba(138,111,168,0.08) !important;
+}
+.stRadio label {
+    font-family: 'Quicksand', sans-serif !important;
+    color: #5c3d6e !important;
+    font-size: 0.9rem !important;
+}
+.stRadio [data-testid="stWidgetLabel"] p { font-weight: 500 !important; color: #5c3d6e !important; }
+.stButton > button {
+    font-family: 'Quicksand', sans-serif !important;
+    background: linear-gradient(135deg, #8a6fa8 0%, #c084d8 100%) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 50px !important;
+    padding: 0.6rem 1.5rem !important;
+    font-size: 0.9rem !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.05em !important;
+    box-shadow: 0 4px 18px rgba(138,111,168,0.3) !important;
+    transition: all 0.3s ease !important;
+}
+.stButton > button:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 24px rgba(138,111,168,0.45) !important;
+    background: linear-gradient(135deg, #7a5f98 0%, #b074c8 100%) !important;
+}
+.stButton > button:disabled {
+    background: linear-gradient(135deg, #c8b8d8 0%, #d8b8e8 100%) !important;
+    box-shadow: none !important;
+    transform: none !important;
+    opacity: 0.6 !important;
+}
+.stTextArea textarea {
+    font-family: 'Quicksand', sans-serif !important;
+    background: rgba(255,255,255,0.5) !important;
+    border: 1.5px solid rgba(138,111,168,0.25) !important;
+    border-radius: 16px !important;
+    color: #5c3d6e !important;
+}
+.stTextArea textarea:focus {
+    border-color: #8a6fa8 !important;
+    box-shadow: 0 0 0 2px rgba(138,111,168,0.15) !important;
+}
+[data-testid="stMetric"] {
+    background: rgba(255,255,255,0.5) !important;
+    border: 1px solid rgba(255,255,255,0.7) !important;
+    border-radius: 20px !important;
+    padding: 20px !important;
+    box-shadow: 0 4px 20px rgba(138,111,168,0.08) !important;
+}
+[data-testid="stMetricLabel"] {
+    font-family: 'Quicksand', sans-serif !important;
+    color: #8a6fa8 !important;
+    font-size: 0.8rem !important;
+}
+[data-testid="stMetricValue"] {
+    font-family: 'Cormorant Garamond', serif !important;
+    color: #5c3d6e !important;
+    font-size: 2.2rem !important;
+    font-weight: 300 !important;
+}
+.stAlert {
+    background: rgba(242,215,232,0.4) !important;
+    border: 1px solid rgba(138,111,168,0.2) !important;
+    border-radius: 16px !important;
+}
+.stAlert p { color: #5c3d6e !important; font-size: 0.85rem !important; }
+[data-testid="stHorizontalBlock"] { gap: 12px !important; }
+</style>
+""", unsafe_allow_html=True)
 
 # ── Google Sheets connection ─────────────────────────────────────────
 def get_sheet():
@@ -260,7 +364,7 @@ elif st.session_state.page == 4:
         )
         st.session_state.saved = True
 
-    st.title("Thank you for participating! ")
+    st.title("Thank you for participating!")
     st.divider()
     st.subheader("Your Results")
 
@@ -294,7 +398,7 @@ elif st.session_state.page == 4:
 
     st.divider()
     st.info(
-        " This survey is a self-assessment tool for research purposes only. "
+        "This survey is a self-assessment tool for research purposes only. "
         "It is not a clinical diagnosis. If you are concerned about your mental health, "
         "please speak with a qualified medical professional."
     )
